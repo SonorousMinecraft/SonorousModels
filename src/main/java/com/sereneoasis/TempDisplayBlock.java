@@ -30,8 +30,12 @@ public class TempDisplayBlock {
     private final BlockDisplay blockDisplay;
     private long revertTime;
 
-    public TempDisplayBlock(Location loc, Material block, final long revertTime, double width, double height, double depth, boolean glowing, Color color) {
+    private double width, height, depth;
 
+    public TempDisplayBlock(Location loc, Material block, final long revertTime, double width, double height, double depth, boolean glowing, Color color) {
+        this.width = width;
+        this.height = height;
+        this.depth = depth;
         this.blockDisplay = (BlockDisplay) loc.getWorld().spawn(loc, EntityType.BLOCK_DISPLAY.getEntityClass(), (entity) ->
         {
             BlockDisplay bDisplay = (BlockDisplay) entity;
@@ -84,57 +88,22 @@ public class TempDisplayBlock {
         revertTime = newRevertTime;
     }
 
-//    public void moveTo(Location newLoc) {
-//        //this.blockDisplay.teleport(newLoc);
-//
-//        try {
-//            newLoc.checkFinite();
-//            Vector diff = Vectors.getDirectionBetweenLocations(blockDisplay.getLocation(), newLoc);
-//
-//            ((CraftBlockDisplay) blockDisplay).getHandle().move(MoverType.SELF, new Vec3(diff.getX(), diff.getY(), diff.getZ()));
-//            ((CraftBlockDisplay) blockDisplay).getHandle().setRot(newLoc.getYaw(), newLoc.getPitch());
-//
-//            Location loc = newLoc.clone();
-//            loc.setPitch(((CraftBlockDisplay) blockDisplay).getPitch());
-//            loc.setYaw(((CraftBlockDisplay) blockDisplay).getYaw());
-//
-//            Vector left = Vectors.getLeftSideNormalisedVector(loc);
-//            Vector right = Vectors.getRightSideNormalisedVector(loc);
-//
-//            Vector forward = new Vector(0, 0, 1).rotateAroundX(-Math.toRadians(loc.getPitch())).rotateAroundY(-Math.toRadians(((CraftBlockDisplay) blockDisplay).getYaw()));
-////            Vector left = forward.clone().rotateAroundY(Math.toRadians(90));
-////            Vector right = forward.clone().rotateAroundY(Math.toRadians(-90));
-//
-//
-//            //bottom left
-//            Location closeBottomLeft = loc.clone().add(Vectors.getDown(loc, size / 2)).add(left.clone().multiply(size / 2)).subtract(forward.clone().multiply(size / 2));
-//            Location farBottomLeft = loc.clone().add(Vectors.getDown(loc, size / 2)).add(left.clone().multiply(size / 2)).add(forward.clone().multiply(size / 2));
-//            Location closeBottomRight = loc.clone().add(Vectors.getDown(loc, size / 2)).add(right.clone().multiply(size / 2)).subtract(forward.clone().multiply(size / 2));
-//            Location farBottomRight = loc.clone().add(Vectors.getDown(loc, size / 2)).add(right.clone().multiply(size / 2)).add(forward.clone().multiply(size / 2));
-//
-//            // top right
-//            Location closeTopRight = loc.clone().add(Vectors.getUp(loc, size / 2)).add(right.clone().multiply(size / 2)).subtract(forward.clone().multiply(size / 2));
-//            Location farTopRight = loc.clone().add(Vectors.getUp(loc, size / 2)).add(right.clone().multiply(size / 2)).add(forward.clone().multiply(size / 2));
-//            Location closeTopLeft = loc.clone().add(Vectors.getUp(loc, size / 2)).add(left.clone().multiply(size / 2)).subtract(forward.clone().multiply(size / 2));
-//            Location farTopLeft = loc.clone().add(Vectors.getUp(loc, size / 2)).add(left.clone().multiply(size / 2)).add(forward.clone().multiply(size / 2));
-//
-//            List<Location> locs = List.of(closeBottomLeft, farBottomLeft, closeBottomRight, farBottomRight, closeTopRight, farTopRight, closeTopLeft, farTopLeft);
-//
-////            Location maxLoc =  boundingBox.getMax().toLocation(blockDisplay.getWorld());
-////            Location minLoc = boundingBox.getMin().toLocation(blockDisplay.getWorld());
-//
-//            if (!isInvisible() && !this.getBlockDisplay().isGlowing() && isLocSolid(locs)) {
-//                this.setInvisible();
-//            } else if (this.isInvisible() && !isLocSolid(locs)) {
-//                setVisible();
-//            }
-//
-//        } catch (IllegalArgumentException exception) {
-//            SereneModels.plugin.getLogger().warning("Block display new location invalid");
-//        }
-//
-//
-//    }
+    public void moveTo(Location newLoc) {
+        //this.blockDisplay.teleport(newLoc);
+
+        try {
+            newLoc.checkFinite();
+            Vector diff = Vectors.getDirectionBetweenLocations(blockDisplay.getLocation(), newLoc);
+
+            ((CraftBlockDisplay) blockDisplay).getHandle().move(MoverType.SELF, new Vec3(diff.getX(), diff.getY(), diff.getZ()));
+            ((CraftBlockDisplay) blockDisplay).getHandle().setRot(newLoc.getYaw(), 0);
+
+        } catch (IllegalArgumentException exception) {
+            SereneModels.plugin.getLogger().warning("Block display new location invalid");
+        }
+
+
+    }
 
     private boolean isLocSolid(List<Location> locs) {
         return locs.stream().anyMatch(location -> location.getBlock().getType().isSolid());
