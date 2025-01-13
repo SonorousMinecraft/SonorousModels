@@ -1,5 +1,6 @@
 package com.sereneoasis;
 
+import com.sereneoasis.manager.AnimationManager;
 import com.sereneoasis.manager.ModelManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -26,6 +27,8 @@ public class SereneModels extends JavaPlugin {
         this.getCommand("SereneModels").setExecutor(new SereneCommand());
 
         this.modelManager = new ModelManager();
+
+        new AnimationManager();
     }
 
     @Override
