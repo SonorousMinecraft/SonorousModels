@@ -1,7 +1,6 @@
 package com.sereneoasis.util;
 
 
-import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -13,7 +12,10 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Sakrajin
@@ -82,10 +84,7 @@ public class Blocks {
         Location playerLoc = player.getEyeLocation().clone();
         Vector dir = player.getEyeLocation().getDirection().clone().normalize();
         RayTraceResult rayTraceResult = boundingBox.rayTrace(playerLoc.toVector(), dir, maxDistance);
-        if (rayTraceResult != null) {
-            return true;
-        }
-        return false;
+        return rayTraceResult != null;
     }
 
 
@@ -162,10 +161,7 @@ public class Blocks {
 
 
     public static boolean isTopBlock(Block b) {
-        if (b.getLocation().add(0, 1, 0).getBlock().getType().isSolid()) {
-            return false;
-        }
-        return true;
+        return !b.getLocation().add(0, 1, 0).getBlock().getType().isSolid();
     }
 
     public static boolean isSolid(Location loc) {

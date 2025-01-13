@@ -1,8 +1,5 @@
 package com.sereneoasis.skeleton;
 
-import java.util.ArrayList;
-import java.util.List;
-
 // Custom classes simulating the functionality in your original model
 public class LayerDefinition {
     private final MeshDefinition meshDefinition;

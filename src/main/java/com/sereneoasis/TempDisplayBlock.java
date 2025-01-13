@@ -6,15 +6,12 @@ import net.minecraft.world.phys.Vec3;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftBlockDisplay;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.Vector3d;
-import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -30,7 +27,9 @@ public class TempDisplayBlock {
     private final BlockDisplay blockDisplay;
     private long revertTime;
 
-    private double width, height, depth;
+    private final double width;
+    private final double height;
+    private final double depth;
 
     public TempDisplayBlock(Location loc, Material block, final long revertTime, double width, double height, double depth, boolean glowing, Color color) {
         this.width = width;

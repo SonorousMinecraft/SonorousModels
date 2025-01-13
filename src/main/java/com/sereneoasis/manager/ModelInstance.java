@@ -2,10 +2,8 @@ package com.sereneoasis.manager;
 
 import com.sereneoasis.SereneModels;
 import com.sereneoasis.TempDisplayBlock;
-import com.sereneoasis.skeleton.Cube;
-import com.sereneoasis.skeleton.LayerDefinition;
-import com.sereneoasis.skeleton.MeshDefinition;
-import com.sereneoasis.skeleton.PartDefinition;
+import com.sereneoasis.skeleton.*;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,40 +18,60 @@ public class ModelInstance {
     private final Set<Pair<TempDisplayBlock, Vector>> cubes = new HashSet<>();
     private Location currentLoc;
 
-    public ModelInstance(LayerDefinition layerDefinition, Location loc){
+    public ModelInstance(LayerDefinition layerDefinition, Location loc) {
 
         MeshDefinition meshDefinition = layerDefinition.getMeshDefinition();
         PartDefinition rootPart = meshDefinition.getRoot();
         this.currentLoc = loc.clone();
 
-        for (PartDefinition child : rootPart.getChildren()) { // Optionally iterate through children if applicable
-            // Iterate through cubes of this part
-            for (Cube cube : child.getCubes()) {
-                // Calculate cube position in world space
-                Location cubeLoc = loc.clone();
-                // Use cube's properties to decide its placement
-                float x = cube.getX(); // Assuming you have a getter in Cube to access these properties
-                float y = cube.getY();
-                float z = cube.getZ();
-                Vector offset = new Vector(x, y, z);
-                cubeLoc.add(offset);
-                float width = cube.getWidth();
-                float height = cube.getHeight();
-                float depth = cube.getDepth();
+        processParts(rootPart, currentLoc);
 
-                TempDisplayBlock tdb = new TempDisplayBlock(cubeLoc, Material.SLIME_BLOCK, 1, width, height, depth, true, Color.PURPLE);
-
-                cubes.add(new Pair<>(tdb, offset));
-            }
-        }
         SereneModels.plugin.getModelManager().addModel(this);
     }
 
-    public void updateLocation(Location newLoc){
+    public void processParts(PartDefinition partDefinition, Location loc) {
+        // Clone the current location to make it current for this part
+
+        PartPose pose = partDefinition.getPose();
+        // Process cubes of the current part
+
+        for (Cube cube : partDefinition.getCubes()) {
+            // Calculate cube position in world space
+            float x = cube.getX();
+            float y = cube.getY();
+            float z = cube.getZ();
+
+            Vector offset = new Vector(x, y, z);
+            if (pose != null) {
+                Bukkit.broadcastMessage(partDefinition.getName());
+                offset.subtract(pose.getOffset());
+            }
+
+            Location currentLocation = loc.clone();
+
+            currentLocation.add(offset);
+
+            // Creating the temporary display block
+            float width = cube.getWidth();
+            float height = cube.getHeight();
+            float depth = cube.getDepth();
+
+            TempDisplayBlock tdb = new TempDisplayBlock(currentLocation, Material.SLIME_BLOCK, 1, width, height, depth, true, Color.PURPLE);
+            cubes.add(new Pair<>(tdb, offset));
+        }
+
+        // Process children parts
+        for (PartDefinition child : partDefinition.getChildren()) {
+            // Recursively process each child part
+            processParts(child, loc);
+        }
+    }
+
+    public void updateLocation(Location newLoc) {
         this.currentLoc = newLoc.clone();
     }
 
-    public void updateCubes(){
+    public void updateCubes() {
         cubes.forEach(tempDisplayBlockVectorPair -> {
             TempDisplayBlock tdb = tempDisplayBlockVectorPair.getA();
             double deltaYaw = currentLoc.getYaw() - tdb.getLoc().getYaw();

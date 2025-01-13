@@ -12,7 +12,7 @@ public class SereneModels extends JavaPlugin {
 
     private ModelManager modelManager;
 
-    public ModelManager getModelManager(){
+    public ModelManager getModelManager() {
         return this.modelManager;
     }
 

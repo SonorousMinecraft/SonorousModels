@@ -6,12 +6,12 @@ public class Cube {
     private final CubeDeformation deformation;
 
     public Cube(float x, float y, float z, float width, float height, float depth, CubeDeformation deformation) {
-        this.x = -(x+width/2)/16;
-        this.y = -(y + height/2)/16;
-        this.z = -z/16;
-        this.width = width/16;
-        this.height = height/16;
-        this.depth = depth/16;
+        this.x = -(x + width / 2) / 16;
+        this.y = -(y + height / 2) / 16;
+        this.z = -z / 16;
+        this.width = width / 16;
+        this.height = height / 16;
+        this.depth = depth / 16;
         this.deformation = deformation;
     }
 
