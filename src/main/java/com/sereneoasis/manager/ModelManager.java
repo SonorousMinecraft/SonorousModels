@@ -13,6 +13,8 @@ public class ModelManager {
     public ModelManager() {
         Bukkit.getScheduler().runTaskTimer(SereneModels.plugin, () -> {
             modelInstanceSet.forEach(ModelInstance::updateCubes);
+            modelInstanceSet.forEach(ModelInstance::tickAnimationManager);
+
         }, 5L, 5L);
     }
 

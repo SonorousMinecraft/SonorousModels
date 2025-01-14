@@ -10,12 +10,34 @@ import org.bukkit.Material;
 import org.bukkit.util.Vector;
 import oshi.util.tuples.Pair;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 public class ModelInstance {
 
-    private final Set<Pair<TempDisplayBlock, Vector>> cubes = new HashSet<>();
+    private final HashMap<TempDisplayBlock, Vector> cubes = new HashMap<>();
+
+    public void putCube(TempDisplayBlock tdb, Vector offset){
+        cubes.put(tdb, offset);
+    }
+
+    public Vector getCubeOffset(TempDisplayBlock tdb){
+        return cubes.get(tdb);
+    }
+
+    private final HashMap<String, TempDisplayBlock> boneTempDisplayBlockMap = new HashMap<>();
+
+    private AnimationManager animationManager;
+
+    public void tickAnimationManager(){
+        animationManager.tick();
+    }
+
+    public TempDisplayBlock getDisplayBlockFromBone(String bone) {
+        return boneTempDisplayBlockMap.get(bone);
+    }
+
     private Location currentLoc;
 
     public ModelInstance(LayerDefinition layerDefinition, Location loc) {
@@ -27,6 +49,7 @@ public class ModelInstance {
         processParts(rootPart, currentLoc);
 
         SereneModels.plugin.getModelManager().addModel(this);
+        this.animationManager = new AnimationManager(this);
     }
 
     public void processParts(PartDefinition partDefinition, Location loc) {
@@ -42,9 +65,10 @@ public class ModelInstance {
             float z = cube.getZ();
 
             Vector offset = new Vector(x, y, z);
+            Vector positionOffsetClone = new Vector(x, 0, z/2);
             if (pose != null) {
                 Bukkit.broadcastMessage(partDefinition.getName());
-                offset.subtract(pose.getOffset());
+                offset.add(pose.getOffset());
             }
 
             Location currentLocation = loc.clone();
@@ -56,8 +80,12 @@ public class ModelInstance {
             float height = cube.getHeight();
             float depth = cube.getDepth();
 
-            TempDisplayBlock tdb = new TempDisplayBlock(currentLocation, Material.SLIME_BLOCK, 1, width, height, depth, true, Color.PURPLE);
-            cubes.add(new Pair<>(tdb, offset));
+            TempDisplayBlock tdb = new TempDisplayBlock(currentLocation.clone().add(positionOffsetClone), Material.SLIME_BLOCK, 1, width, height, depth,
+                    x, 0, z/2,
+                    true, Color.PURPLE);
+
+            boneTempDisplayBlockMap.put(partDefinition.getName(), tdb);
+            cubes.put(tdb, offset);
         }
 
         // Process children parts
@@ -72,11 +100,10 @@ public class ModelInstance {
     }
 
     public void updateCubes() {
-        cubes.forEach(tempDisplayBlockVectorPair -> {
-            TempDisplayBlock tdb = tempDisplayBlockVectorPair.getA();
+        cubes.forEach((tdb, value) -> {
             double deltaYaw = currentLoc.getYaw() - tdb.getLoc().getYaw();
-            Vector offset = tempDisplayBlockVectorPair.getB().rotateAroundY(Math.toRadians(-deltaYaw));
-            tempDisplayBlockVectorPair.getA().moveTo(currentLoc.clone().add(offset));
+            Vector offset = value.rotateAroundY(Math.toRadians(-deltaYaw));
+            tdb.moveTo(currentLoc.clone().add(offset));
         });
     }
 }

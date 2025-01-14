@@ -28,7 +28,6 @@ public class SereneModels extends JavaPlugin {
 
         this.modelManager = new ModelManager();
 
-        new AnimationManager();
     }
 
     @Override

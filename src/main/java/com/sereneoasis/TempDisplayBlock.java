@@ -31,7 +31,9 @@ public class TempDisplayBlock {
     private final double height;
     private final double depth;
 
-    public TempDisplayBlock(Location loc, Material block, final long revertTime, double width, double height, double depth, boolean glowing, Color color) {
+    public TempDisplayBlock(Location loc, Material block, final long revertTime, double width, double height, double depth,
+                            double offsetX, double offsetY, double offsetZ,
+                            boolean glowing, Color color) {
         this.width = width;
         this.height = height;
         this.depth = depth;
@@ -41,7 +43,7 @@ public class TempDisplayBlock {
             bDisplay.setBlock(block.createBlockData());
             Transformation transformation = bDisplay.getTransformation();
 
-            transformation.getTranslation().set(new Vector3d(-width / 2, -height / 2, -depth / 2));
+            transformation.getTranslation().set(new Vector3d(-width / 2 + offsetX, -height / 2 + offsetY, -depth / 2 + offsetZ));
             transformation.getScale().set(width, height, depth);
 
             bDisplay.setViewRange(100);
@@ -166,7 +168,7 @@ public class TempDisplayBlock {
 //        ((CraftBlockDisplay) blockDisplay).getHandle().setRot(((CraftBlockDisplay) blockDisplay).getYaw(), ((CraftBlockDisplay) blockDisplay).getPitch());
 //    }
 
-    public void rotate(float yaw, float pitch) {
+    public void setRotation(float yaw, float pitch) {
         ((CraftBlockDisplay) blockDisplay).getHandle().setRot(yaw, pitch);
     }
 
