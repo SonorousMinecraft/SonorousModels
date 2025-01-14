@@ -4,7 +4,9 @@ import com.sereneoasis.TempDisplayBlock;
 import com.sereneoasis.animations.Animation;
 import com.sereneoasis.animations.AnimationFile;
 import com.sereneoasis.animations.AnimationLoader;
+import org.bukkit.Particle;
 import org.bukkit.util.Transformation;
+import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -48,13 +50,37 @@ public class AnimationManager {
                     double yaw = rotation[1];
                     double roll = rotation[2];
 
-                    Transformation transformation = tdb.getBlockDisplay().getTransformation();
-                    Quaternionf leftRotation = new Quaternionf();
-                    leftRotation = leftRotation.rotateZ((float) Math.toRadians(roll));
-                    leftRotation = leftRotation.rotateY((float) Math.toRadians(yaw));
-                    leftRotation = leftRotation.rotateX((float) Math.toRadians(pitch));
-                    transformation = new Transformation(transformation.getTranslation(), leftRotation, transformation.getScale(), transformation.getRightRotation());
-                    tdb.getBlockDisplay().setTransformation(transformation);
+                    if (name.contains("right")) {
+
+                        Transformation transformation = tdb.getBlockDisplay().getTransformation();
+
+//                        tdb.getLoc().getWorld().spawnParticle(Particle.CRIT, tdb.getLoc().add(Vector.fromJOML(transformation.getTranslation())), 1);
+                        Quaternionf rightRotation = new Quaternionf();
+                        if (yaw != 0 ) {
+                            rightRotation = rightRotation.rotateY((float) Math.toRadians(yaw)); // yaw
+                        }
+                        if (pitch != 0) {
+                            rightRotation = rightRotation.rotateX((float) Math.toRadians(pitch));
+                        }
+                        if (roll != 0 ) {
+                            rightRotation = rightRotation.rotateZ((float) Math.toRadians(180 + roll));
+                        }
+                        transformation = new Transformation(transformation.getTranslation(), rightRotation, transformation.getScale(),transformation.getRightRotation() );
+                        tdb.getBlockDisplay().setTransformation(transformation);
+
+                    } else {
+
+                        Transformation transformation = tdb.getBlockDisplay().getTransformation();
+//                        tdb.getLoc().getWorld().spawnParticle(Particle.CRIT, tdb.getLoc().add(Vector.fromJOML(transformation.getTranslation())), 1);
+
+                        Quaternionf leftRotation = new Quaternionf();
+                        leftRotation = leftRotation.rotateY((float) Math.toRadians(yaw));
+                        leftRotation = leftRotation.rotateX((float) Math.toRadians(pitch));
+
+                        leftRotation = leftRotation.rotateZ((float) Math.toRadians(roll));
+                        transformation = new Transformation(transformation.getTranslation(), leftRotation, transformation.getScale(), transformation.getRightRotation());
+                        tdb.getBlockDisplay().setTransformation(transformation);
+                    }
                 }
                 if (bone.hasPosition()) {
                     double[] position = bone.getPositionByTime(String.valueOf(time));

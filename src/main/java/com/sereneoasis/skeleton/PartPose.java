@@ -9,15 +9,15 @@ public class PartPose {
 
 
     private PartPose(float offsetX, float offsetY, float offsetZ) {
-        this.offsetX = -offsetX/16;
+        this.offsetX = offsetX/16;
         this.offsetY = -offsetY/16;
-        this.offsetZ = offsetZ/16;
+        this.offsetZ = -offsetZ/16;
     }
 
     private PartPose(float offsetX, float offsetY, float offsetZ, float rotationX, float rotationY, float rotationZ) {
-        this.offsetX = -offsetX/16;
+        this.offsetX = offsetX/16;
         this.offsetY = -offsetY/16;
-        this.offsetZ = offsetZ/16;
+        this.offsetZ = -offsetZ/16;
         this.rotationX = rotationX;
         this.rotationY = rotationY;
         this.rotationZ = rotationZ;

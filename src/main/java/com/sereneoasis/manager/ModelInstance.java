@@ -58,34 +58,30 @@ public class ModelInstance {
         // Process cubes of the current part
 
         for (Cube cube : partDefinition.getCubes()) {
-            // Calculate cube position in world space
-            float x = cube.getX();
-            float y = cube.getY();
-            float z = cube.getZ();
-
-            Vector offset = new Vector(x, y, z);
-            Vector positionOffsetClone = new Vector(x, 0, z/2);
-            if (pose != null) {
-                Bukkit.broadcastMessage(partDefinition.getName());
-                offset.add(pose.getOffset());
-            }
-
             Location currentLocation = loc.clone();
 
-            currentLocation.add(offset);
+            currentLocation.add(pose.getOffset());
 
-            // Creating the temporary display block
-            float width = cube.getWidth();
-            float height = cube.getHeight();
-            float depth = cube.getDepth();
+            if (partDefinition.getName().contains("right")){
+                TempDisplayBlock tdb = new TempDisplayBlock(currentLocation, Material.SLIME_BLOCK, 1,
+                        cube.getWidth(), cube.getHeight(), cube.getDepth(),
+                        -cube.getX(), cube.getY(), cube.getZ(),
+                        true, Color.PURPLE);
 
-            TempDisplayBlock tdb = new TempDisplayBlock(currentLocation.clone().add(positionOffsetClone), Material.SLIME_BLOCK, 1, width, height, depth,
-                    x, 0, z/2,
-                    true, Color.PURPLE);
+                boneTempDisplayBlockMap.putIfAbsent(partDefinition.getName(), new HashSet<>());
+                boneTempDisplayBlockMap.get(partDefinition.getName()).add(tdb);
+                cubes.put(tdb, pose.getOffset().add(new Vector(cube.getX(), 0, 0)));
+            } else {
+                TempDisplayBlock tdb = new TempDisplayBlock(currentLocation, Material.SLIME_BLOCK, 1,
+                        cube.getWidth(), cube.getHeight(), cube.getDepth(),
+                        cube.getX(), cube.getY(), cube.getZ(),
+                        true, Color.PURPLE);
 
-            boneTempDisplayBlockMap.putIfAbsent(partDefinition.getName(), new HashSet<>());
-            boneTempDisplayBlockMap.get(partDefinition.getName()).add(tdb);
-            cubes.put(tdb, offset);
+                boneTempDisplayBlockMap.putIfAbsent(partDefinition.getName(), new HashSet<>());
+                boneTempDisplayBlockMap.get(partDefinition.getName()).add(tdb);
+                cubes.put(tdb, pose.getOffset());
+            }
+
         }
 
         // Process children parts
@@ -101,9 +97,9 @@ public class ModelInstance {
 
     public void updateCubes() {
         cubes.forEach((tdb, value) -> {
-            double deltaYaw = currentLoc.getYaw() - tdb.getLoc().getYaw();
-            Vector offset = value.rotateAroundY(Math.toRadians(-deltaYaw));
-            tdb.moveTo(currentLoc.clone().add(offset));
+            double deltaYaw =  tdb.getBlockDisplay().getLocation().getYaw() - currentLoc.getYaw();
+            value.rotateAroundY(Math.toRadians(deltaYaw));
+            tdb.moveTo(currentLoc.clone().add(value));
         });
     }
 }
