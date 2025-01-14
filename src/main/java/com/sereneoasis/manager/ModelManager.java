@@ -15,7 +15,7 @@ public class ModelManager {
             modelInstanceSet.forEach(ModelInstance::updateCubes);
             modelInstanceSet.forEach(ModelInstance::tickAnimationManager);
 
-        }, 5L, 5L);
+        }, 1L, 1L);
     }
 
     public Set<ModelInstance> getModelInstanceSet() {

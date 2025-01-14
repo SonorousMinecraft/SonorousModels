@@ -8,7 +8,6 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
-import oshi.util.tuples.Pair;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,7 +25,7 @@ public class ModelInstance {
         return cubes.get(tdb);
     }
 
-    private final HashMap<String, TempDisplayBlock> boneTempDisplayBlockMap = new HashMap<>();
+    private final HashMap<String, Set<TempDisplayBlock>> boneTempDisplayBlockMap = new HashMap<>();
 
     private AnimationManager animationManager;
 
@@ -34,7 +33,7 @@ public class ModelInstance {
         animationManager.tick();
     }
 
-    public TempDisplayBlock getDisplayBlockFromBone(String bone) {
+    public Set<TempDisplayBlock> getDisplayBlocksFromBone(String bone) {
         return boneTempDisplayBlockMap.get(bone);
     }
 
@@ -84,7 +83,8 @@ public class ModelInstance {
                     x, 0, z/2,
                     true, Color.PURPLE);
 
-            boneTempDisplayBlockMap.put(partDefinition.getName(), tdb);
+            boneTempDisplayBlockMap.putIfAbsent(partDefinition.getName(), new HashSet<>());
+            boneTempDisplayBlockMap.get(partDefinition.getName()).add(tdb);
             cubes.put(tdb, offset);
         }
 
