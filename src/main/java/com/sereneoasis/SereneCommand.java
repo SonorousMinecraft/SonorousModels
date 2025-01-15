@@ -3,6 +3,7 @@ package com.sereneoasis;
 import com.sereneoasis.manager.ModelInstance;
 import com.sereneoasis.models.Dragon;
 import com.sereneoasis.skeleton.LayerDefinition;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -17,7 +18,10 @@ public class SereneCommand implements CommandExecutor {
             Location loc = player.getLocation();
             loc.setDirection(new Vector(0, 0, 1));
             LayerDefinition zombieModel = Dragon.createBodyLayer();
-            new ModelInstance(zombieModel, loc);
+            ModelInstance modelInstance = new ModelInstance(zombieModel, loc);
+            Bukkit.getScheduler().runTaskTimer(SereneModels.plugin, () -> {
+                modelInstance.updateGoalLocation(player.getLocation());
+            }, 20L, 20L);
         }
         return true;
     }

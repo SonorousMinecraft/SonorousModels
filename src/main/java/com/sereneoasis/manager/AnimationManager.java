@@ -44,7 +44,6 @@ public class AnimationManager {
                 if (bone.hasRotation()) {
                     double[] rotation = bone.getRotationByTime(String.valueOf(time));
 
-                    System.out.println("Rotations: " + Arrays.toString(rotation));
 
                     double pitch = rotation[0];
                     double yaw = rotation[1];
