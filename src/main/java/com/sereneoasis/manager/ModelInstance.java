@@ -10,7 +10,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.joml.Quaternionf;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,16 +68,6 @@ public class ModelInstance {
         this.navigationMesh = new NavigationMesh();
         this.navigationMesh.updateMesh(this.currentLoc);
 
-
-//        BukkitTask task = Bukkit.getScheduler().runTaskTimer(SereneModels.plugin, () -> {
-//
-//            if (!Bukkit.getScheduler().isCurrentlyRunning(taskId) && path == null) {
-//                Bukkit.broadcastMessage("generated path");
-//
-//            }
-//        }, 100L, 20L);
-
-//        this.updateLocation(this.currentLoc.clone().add(0,0,100));
     }
 
 
@@ -92,7 +84,7 @@ public class ModelInstance {
             currentLocation.add(pose.getOffset());
 
             if (partDefinition.getName().contains("right")){
-                TempDisplayBlock tdb = new TempDisplayBlock(currentLocation, Material.SLIME_BLOCK, 1,
+                TempDisplayBlock tdb = new TempDisplayBlock(currentLocation, Material.OBSIDIAN, 1,
                         cube.getWidth(), cube.getHeight(), cube.getDepth(),
                         -cube.getX(), cube.getY(), cube.getZ(),
                         true, Color.PURPLE);
@@ -102,7 +94,7 @@ public class ModelInstance {
 //                cubes.put(tdb, pose.getOffset().add(new Vector(cube.getX(), 0, 0)));
                 cubes.put(tdb, pose.getOffset());
             } else {
-                TempDisplayBlock tdb = new TempDisplayBlock(currentLocation, Material.SLIME_BLOCK, 1,
+                TempDisplayBlock tdb = new TempDisplayBlock(currentLocation, Material.OBSIDIAN, 1,
                         cube.getWidth(), cube.getHeight(), cube.getDepth(),
                         cube.getX(), cube.getY(), cube.getZ(),
                         true, Color.PURPLE);
@@ -161,16 +153,15 @@ public class ModelInstance {
             path.remove(0);
         }
 
+
         cubes.forEach((tdb, value) -> {
 
             double deltaYaw =  tdb.getBlockDisplay().getLocation().getYaw() - currentLoc.getYaw();
             value.rotateAroundY(Math.toRadians(deltaYaw));
 
-//            double deltaPitch =  tdb.getBlockDisplay().getLocation().getPitch() - currentLoc.getPitch();
-//
-//            value.rotateAroundX(Math.toRadians(deltaPitch));
+            tdb.setRotation(currentLoc.getYaw(), currentLoc.getPitch());
 
-            tdb.moveTo(currentLoc.clone().add(value));
+            tdb.moveTo(currentLoc.clone().add(value.clone().rotateAroundAxis( Vectors.getRightSideNormalisedVector(currentLoc),-Math.toRadians(currentLoc.getPitch()))));
 
         });
     }

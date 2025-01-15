@@ -97,7 +97,7 @@ public class TempDisplayBlock {
             Vector diff = Vectors.getDirectionBetweenLocations(blockDisplay.getLocation(), newLoc);
 
             ((CraftBlockDisplay) blockDisplay).getHandle().move(MoverType.SELF, new Vec3(diff.getX(), diff.getY(), diff.getZ()));
-            ((CraftBlockDisplay) blockDisplay).getHandle().setRot(newLoc.getYaw(), 0);
+            ((CraftBlockDisplay) blockDisplay).getHandle().setRot(newLoc.getYaw(), newLoc.getPitch());
 
         } catch (IllegalArgumentException exception) {
             SereneModels.plugin.getLogger().warning("Block display new location invalid");

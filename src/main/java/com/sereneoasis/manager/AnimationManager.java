@@ -54,17 +54,17 @@ public class AnimationManager {
                         Transformation transformation = tdb.getBlockDisplay().getTransformation();
 
 //                        tdb.getLoc().getWorld().spawnParticle(Particle.CRIT, tdb.getLoc().add(Vector.fromJOML(transformation.getTranslation())), 1);
-                        Quaternionf rightRotation = new Quaternionf();
+                        Quaternionf leftRotation = new Quaternionf();
                         if (yaw != 0 ) {
-                            rightRotation = rightRotation.rotateY((float) Math.toRadians(yaw)); // yaw
+                            leftRotation = leftRotation.rotateY((float) Math.toRadians(yaw)); // yaw
                         }
                         if (pitch != 0) {
-                            rightRotation = rightRotation.rotateX((float) Math.toRadians(pitch));
+                            leftRotation = leftRotation.rotateX((float) Math.toRadians(pitch));
                         }
                         if (roll != 0 ) {
-                            rightRotation = rightRotation.rotateZ((float) Math.toRadians(180 + roll));
+                            leftRotation = leftRotation.rotateZ((float) Math.toRadians(180 + roll));
                         }
-                        transformation = new Transformation(transformation.getTranslation(), rightRotation, transformation.getScale(),transformation.getRightRotation() );
+                        transformation = new Transformation(transformation.getTranslation(), leftRotation, transformation.getScale(),transformation.getRightRotation() );
                         tdb.getBlockDisplay().setTransformation(transformation);
 
                     } else {
@@ -91,4 +91,6 @@ public class AnimationManager {
             });
         });
     }
+
+
 }

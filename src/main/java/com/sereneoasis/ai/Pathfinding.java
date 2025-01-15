@@ -57,7 +57,6 @@ public class Pathfinding {
             closedSet.add(currentNode.getLocation());
 
             for (Location neighbor : adjacencyMap.getOrDefault(currentNode.getLocation(), Collections.emptySet())) {
-//                System.out.println("NEIGHBOUR");
                 if (closedSet.contains(neighbor)) {
                     continue;
                 }
@@ -66,15 +65,19 @@ public class Pathfinding {
 
                 Node neighborNode = new Node(neighbor, currentNode, tentativeGScore, heuristic(neighbor, goalLoc));
 
-                Optional<Node> existingNode = openSet.stream()
-                        .filter(n -> n.getLocation().equals(neighbor))
-                        .findFirst();
+                Node existingNode = null;
+                for (Node n : openSet) {
+                    if (n.getLocation().equals(neighbor)) {
+                        existingNode = n;
+                        break;
+                    }
+                }
 
-                if (existingNode.isPresent()) {
-                    if (tentativeGScore >= existingNode.get().getCost()) {
+                if (existingNode != null) {
+                    if (tentativeGScore >= existingNode.getCost()) {
                         continue;
                     }
-                    openSet.remove(existingNode.get());
+                    openSet.remove(existingNode);
                 }
 
                 openSet.add(neighborNode);
