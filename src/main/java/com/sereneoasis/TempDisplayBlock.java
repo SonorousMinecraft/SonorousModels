@@ -1,11 +1,13 @@
 package com.sereneoasis;
 
+import com.sereneoasis.physics.PhysicsDisplay;
+import com.sereneoasis.physics.PhysicsObject;
 import com.sereneoasis.util.Vectors;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.phys.Vec3;
-import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
+import org.bukkit.craftbukkit.v1_20_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftBlockDisplay;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.EntityType;
@@ -20,74 +22,77 @@ import java.util.*;
  * Represents temporary display blocks (which are entiites) and handles reverting
  */
 public class TempDisplayBlock {
-    private static final PriorityQueue<TempDisplayBlock> REVERT_QUEUE = new PriorityQueue<>(100, (t1, t2) -> (int) (t1.revertTime - t2.revertTime));
-
-    private static final Set<TempDisplayBlock> TEMP_DISPLAY_BLOCK_SET = new HashSet<>();
-    public static Random random = new Random();
+//    private static final PriorityQueue<TempDisplayBlock> REVERT_QUEUE = new PriorityQueue<>(100, (t1, t2) -> (int) (t1.revertTime - t2.revertTime));
+//
+//    private static final Set<TempDisplayBlock> TEMP_DISPLAY_BLOCK_SET = new HashSet<>();
     private final BlockDisplay blockDisplay;
     private long revertTime;
 
-    private final double width;
-    private final double height;
-    private final double depth;
+
+    private PhysicsDisplay physicsDisplay;
 
     public TempDisplayBlock(Location loc, Material block, final long revertTime, double width, double height, double depth,
                             double offsetX, double offsetY, double offsetZ,
                             boolean glowing, Color color) {
-        this.width = width;
-        this.height = height;
-        this.depth = depth;
-        this.blockDisplay = (BlockDisplay) loc.getWorld().spawn(loc, EntityType.BLOCK_DISPLAY.getEntityClass(), (entity) ->
-        {
-            BlockDisplay bDisplay = (BlockDisplay) entity;
-            bDisplay.setBlock(block.createBlockData());
-            Transformation transformation = bDisplay.getTransformation();
 
-            transformation.getTranslation().set(new Vector3d(-width / 2 + offsetX, -height / 2 + offsetY, -depth / 2 + offsetZ));
-            transformation.getScale().set(width, height, depth);
+        World world = loc.getWorld();
+        ServerLevel level = ((CraftWorld) world).getHandle();
+        physicsDisplay = new PhysicsDisplay(level);
+        level.addFreshEntity(physicsDisplay);
+        this.blockDisplay = (BlockDisplay) Bukkit.getEntity(physicsDisplay.getUUID());
 
-            bDisplay.setViewRange(100);
+        blockDisplay.setBlock(block.createBlockData());
+        Transformation transformation = blockDisplay.getTransformation();
 
-            bDisplay.setTransformation(transformation);
-            if (glowing) {
-                bDisplay.setGlowing(true);
-                bDisplay.setGlowColorOverride(color);
-            }
+        transformation.getTranslation().set(new Vector3d(-width / 2 + offsetX, -height / 2 + offsetY, -depth / 2 + offsetZ));
+        transformation.getScale().set(width, height, depth);
 
-        });
+        blockDisplay.setViewRange(100);
 
-        this.revertTime = System.currentTimeMillis() + revertTime;
-        REVERT_QUEUE.add(this);
-        TEMP_DISPLAY_BLOCK_SET.add(this);
-    }
-
-
-    public static Set<TempDisplayBlock> getTempDisplayBlockSet() {
-        return TEMP_DISPLAY_BLOCK_SET;
-    }
-
-    public static PriorityQueue<TempDisplayBlock> getRevertQueue() {
-        return REVERT_QUEUE;
-    }
-
-    public void automaticRevert() {
-        if (blockDisplay != null) {
-            blockDisplay.remove();
+        blockDisplay.setTransformation(transformation);
+        if (glowing) {
+            blockDisplay.setGlowing(true);
+            blockDisplay.setGlowColorOverride(color);
         }
-        REVERT_QUEUE.remove();
+
+        blockDisplay.teleport(loc);
+
+//        this.revertTime = System.currentTimeMillis() + revertTime;
+//        REVERT_QUEUE.add(this);
+//        TEMP_DISPLAY_BLOCK_SET.add(this);
     }
 
-    public void revert() {
-        blockDisplay.remove();
+    public void attachPhysicsEngine(PhysicsObject physicsObject){
+        physicsDisplay.attachPhysics(physicsObject);
     }
 
-    public long getRevertTime() {
-        return revertTime;
-    }
 
-    public void setRevertTime(long newRevertTime) {
-        revertTime = newRevertTime;
-    }
+//    public static Set<TempDisplayBlock> getTempDisplayBlockSet() {
+//        return TEMP_DISPLAY_BLOCK_SET;
+//    }
+//
+//    public static PriorityQueue<TempDisplayBlock> getRevertQueue() {
+//        return REVERT_QUEUE;
+//    }
+//
+//    public void automaticRevert() {
+//        if (blockDisplay != null) {
+//            blockDisplay.remove();
+//        }
+//        REVERT_QUEUE.remove();
+//    }
+//
+//    public void revert() {
+//        blockDisplay.remove();
+//    }
+//
+//    public long getRevertTime() {
+//        return revertTime;
+//    }
+//
+//    public void setRevertTime(long newRevertTime) {
+//        revertTime = newRevertTime;
+//    }
 
     public void moveTo(Location newLoc) {
         //this.blockDisplay.teleport(newLoc);
@@ -97,7 +102,7 @@ public class TempDisplayBlock {
             Vector diff = Vectors.getDirectionBetweenLocations(blockDisplay.getLocation(), newLoc);
 
             ((CraftBlockDisplay) blockDisplay).getHandle().move(MoverType.SELF, new Vec3(diff.getX(), diff.getY(), diff.getZ()));
-            ((CraftBlockDisplay) blockDisplay).getHandle().setRot(newLoc.getYaw(), newLoc.getPitch());
+//            ((CraftBlockDisplay) blockDisplay).getHandle().setRot(newLoc.getYaw(), newLoc.getPitch());
 
         } catch (IllegalArgumentException exception) {
             SereneModels.plugin.getLogger().warning("Block display new location invalid");

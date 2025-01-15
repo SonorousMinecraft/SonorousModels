@@ -4,6 +4,7 @@ import com.sereneoasis.SereneModels;
 import com.sereneoasis.TempDisplayBlock;
 import com.sereneoasis.ai.NavigationMesh;
 import com.sereneoasis.ai.Pathfinding;
+import com.sereneoasis.physics.PhysicsObject;
 import com.sereneoasis.skeleton.*;
 import com.sereneoasis.util.Vectors;
 import org.bukkit.Bukkit;
@@ -36,6 +37,8 @@ public class ModelInstance {
 
     private AnimationManager animationManager;
 
+    private PhysicsObject physicsObject;
+
     public void tickAnimationManager(){
         animationManager.tick();
     }
@@ -44,7 +47,6 @@ public class ModelInstance {
         return boneTempDisplayBlockMap.get(bone);
     }
 
-    private Location currentLoc;
     private Location targetLoc;
 
     private final NavigationMesh navigationMesh;
@@ -58,15 +60,19 @@ public class ModelInstance {
 
         MeshDefinition meshDefinition = layerDefinition.getMeshDefinition();
         PartDefinition rootPart = meshDefinition.getRoot();
-        this.currentLoc = loc.clone();
 
-        processParts(rootPart, currentLoc);
+        physicsObject = new PhysicsObject(loc, 30);
+
+        SereneModels.plugin.getPhysicsEngine().addPhysicsObject(physicsObject);
+
+        processParts(rootPart, loc);
 
         this.animationManager = new AnimationManager(this);
         SereneModels.plugin.getModelManager().addModel(this);
 
         this.navigationMesh = new NavigationMesh();
-        this.navigationMesh.updateMesh(this.currentLoc);
+        this.navigationMesh.updateMesh(loc);
+
 
     }
 
@@ -93,6 +99,7 @@ public class ModelInstance {
                 boneTempDisplayBlockMap.get(partDefinition.getName()).add(tdb);
 //                cubes.put(tdb, pose.getOffset().add(new Vector(cube.getX(), 0, 0)));
                 cubes.put(tdb, pose.getOffset());
+                tdb.attachPhysicsEngine(physicsObject);
             } else {
                 TempDisplayBlock tdb = new TempDisplayBlock(currentLocation, Material.OBSIDIAN, 1,
                         cube.getWidth(), cube.getHeight(), cube.getDepth(),
@@ -102,6 +109,8 @@ public class ModelInstance {
                 boneTempDisplayBlockMap.putIfAbsent(partDefinition.getName(), new HashSet<>());
                 boneTempDisplayBlockMap.get(partDefinition.getName()).add(tdb);
                 cubes.put(tdb, pose.getOffset());
+                tdb.attachPhysicsEngine(physicsObject);
+
             }
 
         }
@@ -119,23 +128,23 @@ public class ModelInstance {
             return;
         }
 
-        if ( !this.navigationMesh.getAdjacencyMap().containsKey(newLoc.getBlock().getLocation()) || !this.navigationMesh.getAdjacencyMap().containsKey(currentLoc.getBlock().getLocation()) ) {
+        if ( !this.navigationMesh.getAdjacencyMap().containsKey(newLoc.getBlock().getLocation()) || !this.navigationMesh.getAdjacencyMap().containsKey(physicsObject.getLocation().getBlock().getLocation()) ) {
 
-            CompletableFuture<Void> future = this.navigationMesh.updateMesh(this.currentLoc);
+            CompletableFuture<Void> future = this.navigationMesh.updateMesh(this.physicsObject.getLocation());
             this.isNavMeshRefreshing = true;
 
             Bukkit.broadcastMessage("refreshing navmesh");
 
             future.thenRun(() -> {
                 this.isNavMeshRefreshing = false;
-                this.path = new Pathfinding(navigationMesh.getAdjacencyMap()).generatePath(currentLoc, newLoc);
+                this.path = new Pathfinding(navigationMesh.getAdjacencyMap()).generatePath(physicsObject.getLocation(), newLoc);
                 if (!path.isEmpty()) {
                     Bukkit.broadcastMessage("path genereated " + path.size());
                 }
 
             });
         } else {
-            this.path = new Pathfinding(navigationMesh.getAdjacencyMap()).generatePath(currentLoc, newLoc);
+            this.path = new Pathfinding(navigationMesh.getAdjacencyMap()).generatePath(physicsObject.getLocation(), newLoc);
             if (!path.isEmpty()) {
                 Bukkit.broadcastMessage("path genereated " + path.size());
             }
@@ -146,23 +155,140 @@ public class ModelInstance {
     public void updateCubes() {
 
         if (path != null && !path.isEmpty()) {
-            Vector facing = Vectors.getDirectionBetweenLocations(currentLoc, targetLoc);
+            Vector facing = Vectors.getDirectionBetweenLocations(physicsObject.getLocation(), targetLoc);
 
-            this.currentLoc = path.get(0).setDirection(facing);
+            Location nextPathLoc = path.get(0).setDirection(facing);
 
-            path.remove(0);
+            if (nextPathLoc.distanceSquared(physicsObject.getLocation()) < 1) {
+                path.remove(0);
+            }
+
+            double currentYawDegs = Math.toDegrees(physicsObject.getRotationAngle());
+            double desiredYawDegs = -nextPathLoc.getYaw();
+
+            if (desiredYawDegs < 0) {
+                desiredYawDegs += 360;
+            }
+
+            double deltaYaw = (desiredYawDegs - currentYawDegs) % 360 ; //following conventions i.e. increase means turning leftwards
+            System.out.println(deltaYaw);
+            if (Math.abs(deltaYaw) < ANGLE_CHANGE + 1){
+                Bukkit.broadcastMessage("acceleration");
+                accelerate();
+            } else {
+//                brake();
+                physicsObject.halt();
+                if (deltaYaw > 180) {
+                    turnLeft();
+                } else {
+                    turnRight();
+                }
+            }
+
         }
+
+
+//        cubes.forEach((tdb, value) -> {
+//
+//            double deltaYaw =  tdb.getBlockDisplay().getLocation().getYaw() - physicsObject.getLocation().getYaw();
+//            value.rotateAroundY(Math.toRadians(deltaYaw));
+//
+//            tdb.setRotation(physicsObject.getLocation().getYaw(), physicsObject.getLocation().getPitch());
+//
+//            tdb.moveTo(physicsObject.getLocation().clone().add(value.clone().rotateAroundAxis( Vectors.getRightSideNormalisedVector(physicsObject.getLocation()),-Math.toRadians(physicsObject.getLocation().getPitch()))));
+//
+//        });
+
+
+    }
+
+    private static final double ACCELERATION_FORCE = 1.0; // Adjust as necessary
+    // Method to accelerate the vehicle
+    public void accelerate() {
+        // Apply acceleration to the seat's physics object in the direction it's facing
+        Vector direction = new Vector(Math.sin(physicsObject.getRotationAngle()), 0,
+                Math.cos(physicsObject.getRotationAngle()));
+        physicsObject.applyForce(direction.getX() * ACCELERATION_FORCE, 0, direction.getZ() * ACCELERATION_FORCE);
+    }
+
+    // Constants
+    private static final double BRAKE_FORCE = 5.0; // Magnitude of the brake force
+    private static final double MIN_SPEED = 0.5; // Minimum speed to prevent reversal
+
+    // Method to apply brakes to the vehicle
+    public void brake() {
+        // Calculate current speed
+        double currentSpeed = physicsObject.getSpeed();
+
+        // Check if the vehicle is moving and applies brakes accordingly
+        if (currentSpeed > MIN_SPEED) {
+            // Forward direction based on the vehicle's rotation
+            Vector forwardDirection = new Vector(Math.sin(physicsObject.getRotationAngle()),
+                    0,
+                    Math.cos(physicsObject.getRotationAngle()));
+
+            // Calculate the new speed after applying brake force
+            double newSpeed = currentSpeed - BRAKE_FORCE/physicsObject.getMass();
+
+            if (newSpeed < 0) {
+                newSpeed = 0; // Prevent speed from going negative
+            }
+
+            // Calculate resulting force to apply based on new speed
+            double resultingForceMagnitude = currentSpeed - newSpeed; // Calculate the force based on deceleration
+
+            // Apply the braking force (the force is in the opposite direction of movement)
+            // Ensure we only apply force if speed was above minimum
+            if (resultingForceMagnitude > 0) {
+                Vector brakeDirection = forwardDirection.clone().multiply(-1); // Invert the direction
+                physicsObject.applyForce(brakeDirection.getX() * resultingForceMagnitude,
+                        0,
+                        brakeDirection.getZ() * resultingForceMagnitude);
+            } else {
+                physicsObject.halt();
+            }
+        } else {
+            physicsObject.halt();
+        }
+    }
+
+    private static final double ANGLE_CHANGE = 10;
+
+    // Method to turn the vehicle left
+    public void turnLeft() {
+        // Change to a predefined angle (negative) for turning left
+        double turnAngle = Math.toRadians(-ANGLE_CHANGE);
+        updateRotationAngle(turnAngle);
+    }
+
+    // Method to turn the vehicle right
+    public void turnRight() {
+        // Change to a predefined angle (positive) for turning right
+        double turnAngle = Math.toRadians(ANGLE_CHANGE); // Adjust this value for how sharply to turn
+        updateRotationAngle(turnAngle);
+    }
+
+    // Helper method to update the rotation angle based on a given change
+    private void updateRotationAngle(double turnAngle) {
+        // Update the rotation angle of the physics object
+
+
+        double currentAngle = physicsObject.getRotationAngle();
+        double newAngle = currentAngle + (turnAngle);
+
+        physicsObject.setRotationAngle(newAngle);
 
 
         cubes.forEach((tdb, value) -> {
 
-            double deltaYaw =  tdb.getBlockDisplay().getLocation().getYaw() - currentLoc.getYaw();
-            value.rotateAroundY(Math.toRadians(deltaYaw));
+            value.rotateAroundY(turnAngle);
+//
+//            tdb.setRotation(physicsObject.getLocation().getYaw(),0 );
 
-            tdb.setRotation(currentLoc.getYaw(), currentLoc.getPitch());
-
-            tdb.moveTo(currentLoc.clone().add(value.clone().rotateAroundAxis( Vectors.getRightSideNormalisedVector(currentLoc),-Math.toRadians(currentLoc.getPitch()))));
+            tdb.moveTo(physicsObject.getLocation().clone().add(value.clone()));
 
         });
+
+
     }
 }

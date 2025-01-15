@@ -1,7 +1,8 @@
 package com.sereneoasis;
 
-import com.sereneoasis.manager.AnimationManager;
+import com.sereneoasis.listeners.SereneListener;
 import com.sereneoasis.manager.ModelManager;
+import com.sereneoasis.physics.PhysicsEngine;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
@@ -17,6 +18,12 @@ public class SereneModels extends JavaPlugin {
         return this.modelManager;
     }
 
+    private PhysicsEngine physicsEngine;
+
+    public PhysicsEngine getPhysicsEngine() {
+        return physicsEngine;
+    }
+
     @Override
     public void onEnable() {
 
@@ -27,6 +34,8 @@ public class SereneModels extends JavaPlugin {
         this.getCommand("SereneModels").setExecutor(new SereneCommand());
 
         this.modelManager = new ModelManager();
+        this.physicsEngine = new PhysicsEngine();
+
 
     }
 

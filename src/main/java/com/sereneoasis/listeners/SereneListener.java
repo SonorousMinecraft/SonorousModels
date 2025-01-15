@@ -1,4 +1,4 @@
-package com.sereneoasis;
+package com.sereneoasis.listeners;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
