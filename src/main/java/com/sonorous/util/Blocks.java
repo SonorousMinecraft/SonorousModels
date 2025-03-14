@@ -1,4 +1,4 @@
-package com.sereneoasis.util;
+package com.sonorous.util;
 
 
 import org.bukkit.Color;

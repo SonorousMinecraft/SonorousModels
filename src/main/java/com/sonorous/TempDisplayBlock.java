@@ -1,6 +1,6 @@
-package com.sereneoasis;
+package com.sonorous;
 
-import com.sereneoasis.util.Vectors;
+import com.sonorous.util.Vectors;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Color;
@@ -130,7 +130,7 @@ public class TempDisplayBlock {
 //            }
 //
 //        } catch (IllegalArgumentException exception) {
-//            SereneModels.plugin.getLogger().warning("Block display new location invalid");
+//            SonorousModels.plugin.getLogger().warning("Block display new location invalid");
 //        }
 //
 //
@@ -191,7 +191,7 @@ public class TempDisplayBlock {
 //
 //
 //        } catch (IllegalArgumentException exception) {
-//            SereneModels.plugin.getLogger().warning("Block display new location invalid");
+//            SonorousModels.plugin.getLogger().warning("Block display new location invalid");
 //        }
 
 //        ((CraftBlockDisplay) blockDisplay).getHandle().teleportTo(newLoc.getX(), newLoc.getY(), newLoc.getZ());
