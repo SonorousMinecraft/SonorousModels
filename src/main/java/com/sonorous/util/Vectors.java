@@ -1,4 +1,4 @@
-package com.sereneoasis.util;
+package com.sonorous.util;
 
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
